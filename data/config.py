@@ -36,6 +36,7 @@ class Config:
 
         self.INTERVAL = self.parser.getfloat('Bot', 'INTERVAL', fallback=15.0)
         self.LANGUAGE = self.parser.get('Bot', 'LANGUAGE', fallback='EN').lower()
+        self.PURCHASE_DELAY = self.parser.getfloat('Bot', 'PURCHASE_DELAY', fallback=0.0)
 
         self.USER_ID = self._parse_recipients()
         self.GIFT_RANGES = self._parse_gift_ranges()
