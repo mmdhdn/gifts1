@@ -1,6 +1,6 @@
 import asyncio
 import json
-import time
+# import time  
 from typing import Any, Callable, Dict, List, Tuple
 
 from pyrogram import Client, types
@@ -38,7 +38,6 @@ def categorize_gift_skips(gift_data: Dict[str, Any]) -> Dict[str, int]:
         'non_limited_count': not gift_data.get("is_limited") and not config.PURCHASE_NON_LIMITED_GIFTS,
         'non_upgradable_count': config.PURCHASE_ONLY_UPGRADABLE_GIFTS and "upgrade_price" not in gift_data
     }
-
     return {key: 1 if condition else 0 for key, condition in skip_categories.items()}
 
 
@@ -48,7 +47,7 @@ async def detector(app: Client, callback: Callable) -> None:
     while True:
         dot_count = (dot_count + 1) % 4
         log_same_line(f'{t("console.gift_checking")}{"." * dot_count}')
-        time.sleep(0.2)
+        await asyncio.sleep(0.2)  # ✅ اصلاح شد
 
         if not app.is_connected:
             await app.start()
@@ -84,6 +83,8 @@ async def detector(app: Client, callback: Callable) -> None:
 
             for gift_id, gift_data in sorted_gifts:
                 await callback(app, gift_data)
+                if config.PURCHASE_DELAY > 0:
+                    await asyncio.sleep(config.PURCHASE_DELAY)  # ✅ دِیندنت درست شد
 
             await send_summary_message(app, **skip_counts)
 
