@@ -65,4 +65,4 @@ async def new_callback(app: Client, gift_data: Dict[str, Any]) -> None:
         except Exception as ex:
             warn(t("console.purchase_error", gift_id=gift_id, chat_id=user_id))
             await send_notification(app, gift_id, error_message=str(ex))
-        await asyncio.sleep(0.5)
+        await asyncio.sleep(max(0.5, config.PURCHASE_DELAY))
