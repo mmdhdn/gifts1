@@ -1,11 +1,12 @@
 from pyrogram import Client
 from pyrogram.errors import RPCError
+import asyncio
 
 from app.errors import handle_gift_error
 from app.notifications import send_notification
 from app.utils.helper import get_recipient_info, get_user_balance
 from app.utils.logger import success
-from data.config import t
+from data.config import t, config
 
 
 async def buy_gift(app: Client, chat_id: int, gift_id: int, quantity: int = 1) -> None:
@@ -15,15 +16,26 @@ async def buy_gift(app: Client, chat_id: int, gift_id: int, quantity: int = 1) -
         for i in range(quantity):
             current_gift = i + 1
 
+            # اضافه‌کردن مکث بین ارسال‌های متعدد یک گیفت
+            if i > 0 and config.PURCHASE_DELAY > 0:
+                await asyncio.sleep(config.PURCHASE_DELAY)
+
             await app.send_gift(chat_id=chat_id, gift_id=gift_id, hide_my_name=True)
 
             success(t("console.gift_sent", current=current_gift, total=quantity,
                       gift_id=gift_id, recipient=recipient_info))
 
-            await send_notification(app, gift_id, user_id=chat_id, username=username,
-                                    current_gift=current_gift, total_gifts=quantity)
+            await send_notification(
+                app, gift_id, user_id=chat_id, username=username,
+                current_gift=current_gift, total_gifts=quantity
+            )
 
     except RPCError as ex:
+        # بک‌آف ساده در صورت ریت‌لیمیت تلگرام
+        if 'STARGIFT_USAGE_LIMITED' in str(ex):
+            delay = max(config.PURCHASE_DELAY, 10.0)
+            await asyncio.sleep(delay)
+
         gift_price = 0
         current_balance = 0
 
